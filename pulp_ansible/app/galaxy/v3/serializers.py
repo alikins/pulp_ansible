@@ -141,6 +141,7 @@ class CollectionVersionSerializer(CollectionVersionListSerializer):
     download_url = serializers.SerializerMethodField()
 
     metadata = CollectionMetadataSerializer(source="*")
+    namespace = serializers.SerializerMethodField(read_only=True)
 
     class Meta(CollectionVersionListSerializer.Meta):
         fields = CollectionVersionListSerializer.Meta.fields + (
@@ -166,3 +167,7 @@ class CollectionVersionSerializer(CollectionVersionListSerializer):
         prefix = settings.CONTENT_PATH_PREFIX.strip("/")
         base_path = self.context["content_artifact"].relative_path.lstrip("/")
         return f"{host}/{prefix}/{base_path}"
+
+    def get_namespace(self, obj):
+        """Create a namespace dict."""
+        return {"name": obj.namespace}
