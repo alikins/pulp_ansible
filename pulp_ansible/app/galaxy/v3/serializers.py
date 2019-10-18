@@ -63,9 +63,10 @@ class CollectionVersionListSerializer(serializers.ModelSerializer):
     href = serializers.SerializerMethodField()
     created_at = serializers.DateTimeField(source="collection.pulp_created")
     updated_at = serializers.DateTimeField(source="collection.pulp_last_updated")
+    deprecated = serializers.BooleanField(source='collection.deprecated')
 
     class Meta:
-        fields = ("version", "is_certified", "href", "created_at", "updated_at")
+        fields = ("version", "is_certified", "deprecated", "href", "created_at", "updated_at")
         model = models.CollectionVersion
 
     def get_href(self, obj):
