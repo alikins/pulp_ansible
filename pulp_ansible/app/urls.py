@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib import admin
 from django.urls import include, path
 
 from pulp_ansible.app.galaxy.views import (
@@ -77,4 +78,5 @@ urlpatterns = [
     path(GALAXY_API_ROOT + "v1/", include(v1_urls)),
     path(GALAXY_API_ROOT + "v2/", include(v2_urls)),
     path(GALAXY_API_ROOT + "v3/", include(v3_urls)),
+    path('admin/', admin.site.urls),
 ]
