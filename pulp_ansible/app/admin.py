@@ -63,30 +63,46 @@ class TagAdmin(admin.ModelAdmin):
 class CollectionVersionAdmin(admin.ModelAdmin):
     list_display = (
         'pulp_id',
-        'pulp_created',
+        'namespace',
+        'name',
         'pulp_last_updated',
         'pulp_type',
-        'authors',
-        'contents',
-        'dependencies',
         'description',
-        'docs_blob',
-        'documentation',
-        'homepage',
-        'issues',
-        'license',
-        'name',
-        'namespace',
-        'repository',
         'version',
         'is_highest',
         'certification',
-        'collection',
-        'search_vector',
     )
-    list_filter = ('pulp_created', 'pulp_last_updated', 'is_highest')
+    list_filter = ('pulp_created', 'pulp_last_updated', 'is_highest', 'certification')
     raw_id_fields = ('tags',)
-    search_fields = ('name',)
+    search_fields = ('namespace', 'name', 'pulp_id', 'certification', 'collection')
+    readonly_fields = ('namespace', 'name', 'version', 'is_highest', 'collection', 'authors', 'contents', 'dependencies', 'description',
+                       'homepage', 'issues', 'license',
+                       'docs_blob', 'documentation', 'pulp_id',
+                       'repository',
+                       'pulp_created', 'pulp_last_updated',
+                       )
+    fields = (
+        'pulp_id',
+        'namespace',
+        'name',
+        'version',
+        'is_highest',
+        'description',
+        'certification',
+        'dependencies',
+        'authors',
+        'homepage',
+        'issues',
+        'repository',
+        'license',
+        'contents',
+        'pulp_type',
+        'documentation',
+        'docs_blob',
+        'search_vector',
+        'pulp_created',
+        'pulp_last_updated',
+    )
 
 
 @admin.register(AnsibleRemote)
