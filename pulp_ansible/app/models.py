@@ -5,6 +5,8 @@ from django.contrib.postgres import fields as psql_fields
 from django.contrib.postgres import search as psql_search
 from django.db.models import UniqueConstraint, Q
 
+from django_prometheus.models import ExportModelOperationsMixin
+
 from pulpcore.plugin.models import (
     BaseModel,
     Content,
@@ -17,7 +19,7 @@ from pulpcore.plugin.models import (
 log = getLogger(__name__)
 
 
-class Role(Content):
+class Role(ExportModelOperationsMixin(name='role'), Content):
     """
     A content type representing a Role.
     """
@@ -40,7 +42,7 @@ class Role(Content):
         unique_together = ("version", "name", "namespace")
 
 
-class Collection(BaseModel):
+class Collection(ExportModelOperationsMixin(name="collection"), BaseModel):
     """A model representing a Collection."""
 
     namespace = models.CharField(max_length=64, editable=False)
@@ -52,7 +54,7 @@ class Collection(BaseModel):
         unique_together = ("namespace", "name")
 
 
-class CollectionImport(models.Model):
+class CollectionImport(ExportModelOperationsMixin(name="collection_import", BaseModel), models.Model):
     """A model representing a collection import task details."""
 
     task = models.OneToOneField(
@@ -76,7 +78,7 @@ class CollectionImport(models.Model):
         )
 
 
-class Tag(BaseModel):
+class Tag(ExportModelOperationsMixin(name="tag"), BaseModel):
     """A model representing a Tag.
 
     Fields:
@@ -91,7 +93,7 @@ class Tag(BaseModel):
         return self.name
 
 
-class CollectionVersion(Content):
+class CollectionVersion(ExportModelOperationsMixin(name="collection_version"), Content):
     """
     A content type representing a CollectionVersion.
 
@@ -196,7 +198,7 @@ class CollectionVersion(Content):
         ]
 
 
-class AnsibleRemote(Remote):
+class AnsibleRemote(ExportModelOperationsMixin(name="ansible_remote"), Remote):
     """
     A Remote for Ansible content.
     """
@@ -207,7 +209,7 @@ class AnsibleRemote(Remote):
         default_related_name = "%(app_label)s_%(model_name)s"
 
 
-class AnsibleRepository(Repository):
+class AnsibleRepository(ExportModelOperationsMixin(name="ansible_repository"), Repository):
     """
     Repository for "ansible" content.
     """
@@ -219,7 +221,7 @@ class AnsibleRepository(Repository):
         default_related_name = "%(app_label)s_%(model_name)s"
 
 
-class CollectionRemote(Remote):
+class CollectionRemote(ExportModelOperationsMixin(name="collection_remote"), Remote):
     """
     A Remote for Collection content.
     """
@@ -232,7 +234,8 @@ class CollectionRemote(Remote):
         default_related_name = "%(app_label)s_%(model_name)s"
 
 
-class AnsibleDistribution(RepositoryVersionDistribution):
+class AnsibleDistribution(ExportModelOperationsMixin(name="ansible_distribution"),
+                          RepositoryVersionDistribution):
     """
     A Distribution for Ansible content.
     """
