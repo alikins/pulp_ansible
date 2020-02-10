@@ -5,6 +5,7 @@ import json
 import logging
 import math
 import tarfile
+from urllib.parse import urlparse
 
 from django.db import transaction
 from galaxy_importer.collection import import_collection as process_collection
@@ -346,7 +347,13 @@ class CollectionSyncFirstStage(Stage):
                     for result in data.get("results", [data]):
                         download_url = result.get("download_url")
 
+                        log.info("versions_url: %s", result.get("versions_url"))
                         if result.get("versions_url"):
+                            scheme = urlparse(result.get("versions_url")).scheme.lower()
+                            if scheme not in ('https', 'http', 'file'):
+                                log.warning("No URL scheme in %s", result.get("versions_url"))
+                            log.info("urlparse result: %r", urlparse(result.get("versions_url")))
+
                             not_done.update(
                                 [remote.get_downloader(url=result["versions_url"]).run()]
                             )
