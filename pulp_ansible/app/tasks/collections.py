@@ -282,6 +282,12 @@ class CollectionSyncFirstStage(Stage):
                     version=metadata["version"],
                 )
 
+                relative_path = "%s.%s.%s" % (
+                    metadata["namespace"]["name"],
+                    metadata["collection"]["name"],
+                    metadata["version"],
+                )
+
                 artifact = metadata["artifact"]
 
                 d_artifact = DeclarativeArtifact(
