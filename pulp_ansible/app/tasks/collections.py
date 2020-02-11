@@ -5,7 +5,7 @@ import json
 import logging
 import math
 import tarfile
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 
 from django.db import transaction
 from galaxy_importer.collection import import_collection as process_collection
@@ -342,24 +342,36 @@ class CollectionSyncFirstStage(Stage):
 
             while not_done:
                 done, not_done = await asyncio.wait(not_done, return_when=asyncio.FIRST_COMPLETED)
+
                 for item in done:
                     data = parse_metadata(item.result())
                     for result in data.get("results", [data]):
                         download_url = result.get("download_url")
 
-                        log.info("versions_url: %s", result.get("versions_url"))
                         if result.get("versions_url"):
-                            scheme = urlparse(result.get("versions_url")).scheme.lower()
+                            version_url_parts = urlparse(result.get("versions_url"))
+                            scheme = version_url_parts.scheme.lower
+                            # scheme = urlparse(result.get("versions_url")).scheme.lower()
                             if scheme not in ('https', 'http', 'file'):
                                 log.warning("No URL scheme in %s", result.get("versions_url"))
-                            log.info("urlparse result: %r", urlparse(result.get("versions_url")))
+                                new_url_parts = urlparse(self.remote.url)._replace(path=version_url_parts.path)
+                                versions_url = urlunparse(new_url_parts)
+                            else:
+                                versions_url = result.get("versions_url")
+                            # log.info("urlparse result: %r", urlparse(result.get("versions_url")))
+
+                            log.debug('new version url: %s', versions_url)
 
                             not_done.update(
-                                [remote.get_downloader(url=result["versions_url"]).run()]
+                                [remote.get_downloader(url=versions_url).run()]
                             )
 
                         if result.get("version") and not download_url:
                             not_done.update([remote.get_downloader(url=result["href"]).run()])
+
+                        import pprint
+                        log.debug('data: %s', pprint.pformat(data))
+                        log.debug('download_url: %s', download_url)
 
                         if download_url:
                             yield data
@@ -382,12 +394,15 @@ class CollectionContentSaver(ContentSaver):
                 :class:`~pulpcore.plugin.stages.DeclarativeContent` objects to be saved.
 
         """
+        log.debug('CollectionContentSave._pre_save batch:%s', batch)
         for d_content in batch:
             if d_content is None:
                 continue
             if not isinstance(d_content.content, CollectionVersion):
+                log.debug('%s not a CollctionVersion', d_content.content)
                 continue
 
+            log.debug('bloop')
             info = d_content.content.natural_key_dict()
             collection, created = Collection.objects.get_or_create(
                 namespace=info["namespace"], name=info["name"]
@@ -403,11 +418,13 @@ class CollectionContentSaver(ContentSaver):
                 :class:`~pulpcore.plugin.stages.DeclarativeContent` objects to be saved.
 
         """
+        log.debug('_post_save batch:%s', batch)
         for d_content in batch:
             if d_content is None:
                 continue
             if not isinstance(d_content.content, CollectionVersion):
                 continue
+            log.debug('_post_save gothere')
             collection_version = d_content.content
             for d_artifact in d_content.d_artifacts:
                 artifact = d_artifact.artifact
